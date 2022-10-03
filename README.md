@@ -16,7 +16,7 @@ Futher development
 
 Project support
 
-This is a free project with the aim to help grow the PUBG community in the APAC region. Anyone with relevant skills who would like to help out should let me know!
+This is a free project with the aim to help grow the PUBG community in the APAC region. Anyone with relevant skills who would like to help out should chat with MyNammaJeff#0001
 
 Project resources
 
