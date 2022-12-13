@@ -18,7 +18,7 @@ from utils import Notification
 
 print("Bot is starting...")
 
-BOT_PREFIX = "!"
+BOT_PREFIX = "."
 TOKEN = os.getenv('bot_token')
 HOST = os.getenv('host')
 USER = os.getenv('user')
@@ -27,7 +27,7 @@ DATABASE = os.getenv('database')
 
 extensions = ["cogs.Settings", "cogs.Scrim", "cogs.Pinger", "cogs.Util"]
 
-intents = Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 
 client = Bot(command_prefix=BOT_PREFIX, intents=intents)
