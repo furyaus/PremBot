@@ -22,12 +22,12 @@ class Util(commands.Cog):
 
     @commands.group(name="clear", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def clear(self, ctx):
+    async def clear(self):
         pass
 
     @commands.group(name="utils", alias="util", brief="Useful scripts", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def utils(self, ctx):
+    async def utils(self):
         pass
 
     @commands.command(name="mixterms")
