@@ -6,6 +6,12 @@ from cogs.scrim.ScrimDB import ScrimDB
 
 from utils import Checks, Notification, Dates_time, DictUtil
 
+import os, discord, json, requests, asyncio
+from discord import Activity
+from discord.ext import commands
+from discord.ext.commands import Bot
+from discord import Intents
+
 green = 0x11f711
 red = 0xD10000
 orange = 0xff8800
