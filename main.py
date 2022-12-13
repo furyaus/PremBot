@@ -18,7 +18,7 @@ from utils import Notification
 
 print("Bot is starting...")
 
-BOT_PREFIX = "."
+BOT_PREFIX = "!"
 TOKEN = os.getenv('bot_token')
 HOST = os.getenv('host')
 USER = os.getenv('user')
