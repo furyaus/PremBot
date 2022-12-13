@@ -1,16 +1,6 @@
-import asyncio
+import discord, asyncio
 from discord.ext import commands
-import discord
-
-from cogs.scrim.ScrimDB import ScrimDB
-
-from utils import Checks, Notification, Dates_time, DictUtil
-
-import os, discord, json, requests, asyncio
-from discord import Activity
-from discord.ext import commands
-from discord.ext.commands import Bot
-from discord import Intents
+from utils import checks, dates_time, notification, dict_util
 
 green = 0x11f711
 red = 0xD10000
@@ -22,246 +12,20 @@ num_to_symbol = {
     7: '7️⃣', 8: '8️⃣', 9: '9️⃣'
 }
 
-
-def sort_teams(teams, mode):
-    sorted_teams = []
-    if mode == "Tier":
-        for i in range(0, len(teams)):
-            team = teams[0]
-            for j in range(1, len(teams)):
-                comparison = teams[j]
-                if team['tier'] > comparison['tier'] != 0 or (team['tier'] == 0 and comparison['tier'] != 0):
-                    team = comparison
-            teams.remove(team)
-            sorted_teams.append(team)
-        return sorted_teams
-    elif mode == "FCFS":
-        return teams
-
-
 def is_role_team(role):
     if role.color.value == 1177361:
         return True
     return False
-
-
+  
 def is_team_member(team, member):
     for member_role in member.roles:
         if member_role.id == team.id:
             return True
-    return False
-
-
+    return False  
 
 class Scrim(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.db = ScrimDB(client.db)
-
-    def get_lobbies(self, reserve, scrim_id=None, server_id=None, scrim_name=None):
-        lobbies = []
-
-        if scrim_id is None:
-            scrim_id = self.db.get_scrim_id(server_id=server_id, scrim_name=scrim_name)
-
-        if server_id is None:
-            server_id = self.db.get_server_from_scrim(scrim_id=scrim_id)
-
-        if scrim_name is None:
-            scrim_name = self.db.get_scrim_name(scrim_id=scrim_id)
-
-        mode = self.db.get_scrim_mode(scrim_id=scrim_id)
-        teams = sort_teams(teams=self.db.get_scrim_teams(scrim_id=scrim_id), mode=mode)
-        tiers = self.db.get_tier_roles(server_id=server_id)
-        lobby_params = self.db.get_scrim_lobby_params(scrim_id=scrim_id)
-        lobby_count = lobby_params['lobby_count']
-        min_teams = lobby_params['min_teams']
-        max_teams = lobby_params['max_teams']
-
-        pos_lobby_count = int(len(teams) / min_teams)
-        if pos_lobby_count < lobby_count:
-            lobby_count = pos_lobby_count
-
-        teams_left = len(teams) - min_teams * lobby_count
-        free_seats = (max_teams - min_teams) * lobby_count
-
-        if teams_left > free_seats:
-            teams_left = free_seats
-
-        if lobby_count != 0:
-            balance_team_count = int(teams_left / lobby_count) + min_teams
-            unbalanced_team_addition = teams_left % lobby_count
-
-        if scrim_name is None:
-            scrim_name = self.db.get_scrim_name(scrim_id=scrim_id)
-
-        scrim_date = self.db.get_date(server_id, scrim_name)
-
-        for lobby in range(1, lobby_count + 1):
-            lobby_status_embed = discord.Embed(title="{} - {}".format(scrim_name, scrim_date), color=green)
-            text = "**"
-            addition = 0
-            if lobby <= unbalanced_team_addition:
-                addition = 1
-            for slot in range(3, balance_team_count + 3 + addition):
-                team = teams.pop(0)
-                if team['tier'] == 0:
-                    tier_text = "MIX"
-                else:
-                    tier_text = tiers[team['tier'] - 1]['mention']
-                text += "Slot {}: {}, {}\n".format(slot, team['mention'], tier_text)
-            text += "**"
-            lobby_status_embed.add_field(name="Lobby {}".format(lobby), value=text)
-            lobbies.append(lobby_status_embed)
-
-        if reserve:
-            if len(teams) != 0:
-                reserve_status_embed = discord.Embed(title="{} - {}".format(scrim_name, scrim_date), color=0x000000)
-                text = "**"
-                for seat in range(1, len(teams) + 1):
-                    team = teams.pop(0)
-                    if team['tier'] == 0:
-                        tier_text = "MIX"
-                    else:
-                        tier_text = tiers[team['tier'] - 1]['mention']
-                    text += "Seat {}: {}, {}\n".format(seat, team['mention'], tier_text)
-                text += "**"
-                reserve_status_embed.add_field(name="Reserve", value=text)
-                lobbies.append(reserve_status_embed)
-
-        return lobbies
-
-    async def select_scrim(self, server_id, ctx):
-        scrims = self.db.get_scrims(server_id)
-
-        description = ""
-        for i in range(1, len(scrims) + 1):
-            description += "{} {}\n".format(num_to_symbol[i], scrims[i - 1]['name'])
-
-        embed = discord.Embed(title="Select Scrims", description=description)
-        select_scrim_mes = await ctx.message.channel.send(embed=embed)
-
-        for i in range(1, len(scrims) + 1):
-            await select_scrim_mes.add_reaction(num_to_symbol[i])
-
-        def scrim_select_check(reaction, user):
-            if user != ctx.message.author:
-                return False
-
-            react_str = str(reaction.emoji)
-            if react_str in num_to_symbol.values():
-                return True
-
-            return False
-
-        try:
-            reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=scrim_select_check)
-        except asyncio.TimeoutError:
-            await select_scrim_mes.delete()
-            return
-
-        await select_scrim_mes.delete()
-
-        for number, symbol in num_to_symbol.items():
-            if symbol == reaction.emoji:
-                return scrims[number - 1]
-
-    async def confirm_embed(self, ctx, message):
-        num_to_symbol = {
-            1: '1️⃣', 2: '2️⃣', 3: '3️⃣', 4: '4️⃣', 5: '5️⃣', 6: '6️⃣',
-            7: '7️⃣', 8: '8️⃣', 9: '9️⃣'
-        }
-        confirm_embed = discord.Embed(title="Conrirm {}".format(message),
-                                      description="You want to preceed?\n {} Yes\n{} No".format(num_to_symbol[1],
-                                                                                                num_to_symbol[2]))
-        confirm_message = await ctx.channel.send(embed=confirm_embed)
-        for i in range(1, 3):
-            await confirm_message.add_reaction(num_to_symbol[i])
-
-        def confirm_check(reaction, user):
-            if user != ctx.message.author:
-                return False
-
-            if reaction.emoji != num_to_symbol[1] and reaction.emoji != num_to_symbol[2]:
-                return False
-
-            return True
-
-        try:
-            reaction, user = await self.client.wait_for('reaction_add', check=confirm_check, timeout=60.0)
-        except asyncio.TimeoutError:
-            await confirm_message.delete()
-            return
-
-        await confirm_message.delete()
-
-        if reaction.emoji == num_to_symbol[1]:
-            return True
-        elif reaction.emoji == num_to_symbol[2]:
-            return False
-
-        return False
-
-    async def update_lobby(self, server_id=None, scrim_id=None, scrim_name=None):
-        if scrim_id is None:
-            scrim_id = self.db.get_scrim_id(server_id=server_id, scrim_name=scrim_name)
-
-        if server_id is None:
-            server_id = self.db.get_server_from_scrim(scrim_id=scrim_id)
-
-        if scrim_name is None:
-            scrim_name = self.db.get_scrim_name(scrim_id=scrim_id)
-
-        lobbies = self.get_lobbies(reserve=True, scrim_id=scrim_id, scrim_name=scrim_name, server_id=server_id)
-
-        channels = self.db.get_scrim_channels(scrim_id=scrim_id)
-        guild = self.client.get_guild(id=server_id)
-        status_channel = guild.get_channel(channels['status'])
-
-        await status_channel.purge(limit=50)
-        if len(lobbies) == 0:
-            no_teams_embed = discord.Embed(title=scrim_name, description="No teams checked in yet", color=blue)
-            await status_channel.send(embed=no_teams_embed)
-        else:
-            for lobby_embed in lobbies:
-                await status_channel.send(embed=lobby_embed)
-
-    async def announce_lobby(self, scrim_id, guild, hosts, lobbies):
-        announce_channel = guild.get_channel(self.db.get_scrim_channels(scrim_id=scrim_id)['announce'])
-
-        if len(lobbies) == 0:
-            embed = discord.Embed(title="Scrims canceled", description="Too less teams checked in", color=red)
-            await announce_channel.send(embed=embed)
-
-        host_text = ""
-        for i in range(1, len(hosts) + 1):
-            host_text += "Lobby {} host: {}\n".format(str(i), hosts[i - 1])
-        text = "**FINAL LOBBY**\n{}Game up 18:50, Game start 19:00 CET\n@here".format(host_text)
-
-        await announce_channel.send(content=text)
-
-        for lobby_embed in lobbies:
-            await announce_channel.send(embed=lobby_embed)
-
-    def get_team_tier(self, team_role, guild):
-        tier = 99
-
-        if len(team_role.members) == 0:
-            return tier
-
-        for tier_role in self.db.get_tier_roles(server_id=guild.id):
-            for role in team_role.members[0].roles:
-                if tier_role['id'] == role.id:
-                    tier = tier_role['tier']
-
-        return tier
-
-    def has_tier5_role(self, member, server_id):
-        tiers = self.db.get_tier_roles(server_id)
-        for member_role in member.roles:
-            if member_role.id == tiers[5]["id"]:
-                return True
-        return False
 
     @commands.group(name="scrim", alias="scrims", invoke_without_command=True, brief="Commands for scrim handling")
     @commands.has_guild_permissions(administrator=True)
@@ -339,7 +103,7 @@ class Scrim(commands.Cog):
         lobby_count_msg = await ctx.channel.send(embed=embed, delete_after=60)
 
         try:
-            lobby_count_res = await self.client.wait_for('message', check=Checks.is_numeric, timeout=60.0)
+            lobby_count_res = await self.client.wait_for('message', check=checks.is_numeric, timeout=60.0)
             lobby_count = int(lobby_count_res.content)
             await lobby_count_msg.delete()
             await lobby_count_res.delete()
@@ -356,7 +120,7 @@ class Scrim(commands.Cog):
 
         def min_teams_check(message):
             if same_channel_same_author_check(message):
-                if Checks.is_numeric(message):
+                if checks.is_numeric(message):
                     teams = int(message.content)
                     if 21 > teams > 1:
                         return True
@@ -380,7 +144,7 @@ class Scrim(commands.Cog):
 
         def max_teams_check(message):
             if same_channel_same_author_check(message):
-                if Checks.is_numeric(message):
+                if checks.is_numeric(message):
                     teams = int(message.content)
                     if 21 > teams >= min_teams:
                         return True
@@ -450,9 +214,7 @@ class Scrim(commands.Cog):
         await checkin_channel.send(content="**CLOSED**")
         await checkout_channel.send(content="**CLOSED**")
 
-    @scrim.command(name="reset", brief="Reset teams and open next scrim sessions", description="Reset teams and open "
-                                                                                               "next scrim sessions\n\nSteps:\n1. Select scrims"
-                                                                                               "\n2. Select day")
+    @scrim.command(name="reset", brief="Reset teams and open next scrim sessions", description="Reset teams and open ""next scrim sessions\n\nSteps:\n1. Select scrims" "\n2. Select day")
     @commands.has_guild_permissions(administrator=True)
     async def reset_scrim(self, ctx):
         await ctx.message.delete()
@@ -490,9 +252,9 @@ class Scrim(commands.Cog):
         await day_select_msg.delete()
 
         if reaction.emoji == num_to_symbol[1]:
-            scrim_day = Dates_time.get_today()
+            scrim_day = dates_time.get_today()
         elif reaction.emoji == num_to_symbol[2]:
-            scrim_day = Dates_time.get_tomorrow()
+            scrim_day = dates_time.get_tomorrow()
 
         checkout_info = discord.Embed(title="Check out for {}".format(scrim_day), color=blue)
         checkout_info.add_field(name="Checkout Team",
@@ -518,7 +280,7 @@ class Scrim(commands.Cog):
         confirm = await self.confirm_embed(ctx, "reset scrim lobby")
 
         if not confirm:
-            await Notification.send_alert(ctx, description="Canceled reset scrims")
+            await notification.send_alert(ctx, description="Canceled reset scrims")
             return
 
         self.db.reset_scrim(scrim_id=scrim_id)
@@ -528,7 +290,7 @@ class Scrim(commands.Cog):
         await checkin_channel.purge(limit=100)
         await checkin_channel.send(embed=checkin_info)
         await self.update_lobby(scrim_id=scrim_id)
-        await Notification.send_approve(ctx=ctx, header="Scim reset", content="{} has been reset".format(scrim_name))
+        await notification.send_approve(ctx=ctx, header="Scim reset", content="{} has been reset".format(scrim_name))
 
     @scrim.command(name="clear", brief="Use \"!scrim clear lootspot\" for now")
     @commands.has_guild_permissions(administrator=True)
@@ -564,9 +326,9 @@ class Scrim(commands.Cog):
             await day_select_msg.delete()
 
             if reaction.emoji == num_to_symbol[1]:
-                scrim_day = Dates_time.get_today()
+                scrim_day = dates_time.get_today()
             elif reaction.emoji == num_to_symbol[2]:
-                scrim_day = Dates_time.get_tomorrow()
+                scrim_day = dates_time.get_tomorrow()
 
             lootspot_text = "**Lootspots for {}**\n\nRead ".format(scrim_day)+"Lootspot template in ONE text line (no pictures)\n\nTeam with tier:\n@ Teamname Tier E: lootspot main, M: lootspot main\n\nMIX:\n@ Player1 MIX @ Player2 @ Player3 @ Player4 E: lootspot main, M: lootspot main"
 
@@ -623,7 +385,7 @@ class Scrim(commands.Cog):
         scrim_name = ctx.message.content[14:]
         scrim_id = self.db.get_scrim_id(server_id=ctx.guild.id, scrim_name=scrim_name)
         if scrim_id is None:
-            await Notification.send_alert(ctx=ctx, header="Scrim not found", content="Couldn't find a scrim with "
+            await notification.send_alert(ctx=ctx, header="Scrim not found", content="Couldn't find a scrim with "
                                                                                      "that name")
             return
         await self.update_lobby(scrim_id=scrim_id)
@@ -634,7 +396,7 @@ class Scrim(commands.Cog):
         admin = self.client.db.is_admin(server_id=ctx.guild.id, member=ctx.message.author)
 
         if not self.db.is_checkin_channel(server_id=ctx.guild.id, channel_id=ctx.message.channel.id):
-            await Notification.send_alert(ctx=ctx, header="No check in channel",
+            await notification.send_alert(ctx=ctx, header="No check in channel",
                                           content="You have to use a check in channel")
             return
 
@@ -647,23 +409,23 @@ class Scrim(commands.Cog):
             member_tag = ctx.message.mentions[0]
 
         if team_tag is None and member_tag is None:
-            await Notification.send_alert(ctx=ctx, header="No team or member tagged",
+            await notification.send_alert(ctx=ctx, header="No team or member tagged",
                                           content="Use:\n{}checkin <@your team>\nor\n{}checkin <@yourself>"
                                                   "".format(self.client.prefix, self.client.prefix))
             return
 
         if not self.db.is_scrims_open(server_id=ctx.guild.id, checkin=ctx.message.channel.id) and not admin:
-            await Notification.send_alert(ctx=ctx, header="Scrims are not open",
+            await notification.send_alert(ctx=ctx, header="Scrims are not open",
                                           content="You can not check in right now")
             return
 
         if team_tag is not None:
             if not is_role_team(role=team_tag):
-                await Notification.send_alert(ctx=ctx, header="Role is no team", content="You have to tag a team role")
+                await notification.send_alert(ctx=ctx, header="Role is no team", content="You have to tag a team role")
                 return
 
             if not is_team_member(team=team_tag, member=ctx.message.author) and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check in this team")
                 return
 
@@ -672,7 +434,7 @@ class Scrim(commands.Cog):
                     if tier_role['id'] == role.id:
                         tier = tier_role['tier']
             if tier is None:
-                await Notification.send_alert(ctx=ctx, header="No tier found for {}".format(team_tag.mention),
+                await notification.send_alert(ctx=ctx, header="No tier found for {}".format(team_tag.mention),
                                               content="Contact an admin")
                 return
 
@@ -682,7 +444,7 @@ class Scrim(commands.Cog):
             description = "{} *checked in by* {}".format(team_tag.mention, ctx.message.author.mention)
         else:
             if not member_tag == ctx.message.author and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check in this MIX")
                 return
 
@@ -694,11 +456,11 @@ class Scrim(commands.Cog):
         scrim_id = self.db.get_scrim_id(server_id=ctx.guild.id, checkin_id=ctx.message.channel.id)
 
         if not self.db.add_team(role_id=role_id, name=name, tier=tier, mention=mention, scrim_id=scrim_id):
-            await Notification.send_alert(ctx=ctx, header="Team is already checked in",
+            await notification.send_alert(ctx=ctx, header="Team is already checked in",
                                           content="You cant check in twice")
             return
 
-        await Notification.send_approve(ctx=ctx, title="Check in", description=description, permanent=True)
+        await notification.send_approve(ctx=ctx, title="Check in", description=description, permanent=True)
 
         await self.update_lobby(scrim_id=scrim_id)
 
@@ -709,7 +471,7 @@ class Scrim(commands.Cog):
         admin = self.client.db.is_admin(server_id=ctx.guild.id, member=ctx.message.author)
 
         if not self.db.is_checkin_channel(server_id=ctx.guild.id, channel_id=ctx.message.channel.id):
-            await Notification.send_alert(ctx=ctx, header="No check in channel",
+            await notification.send_alert(ctx=ctx, header="No check in channel",
                                           content="You have to use a check in channel")
             return
 
@@ -722,23 +484,23 @@ class Scrim(commands.Cog):
             member_tag = ctx.message.mentions[0]
 
         if team_tag is None and member_tag is None:
-            await Notification.send_alert(ctx=ctx, header="No team or member tagged",
+            await notification.send_alert(ctx=ctx, header="No team or member tagged",
                                           content="Use:\n{}checkin <@your team>\nor\n{}checkin <@yourself>"
                                                   "".format(self.client.prefix, self.client.prefix))
             return
 
         if not self.db.is_scrims_open(server_id=ctx.guild.id, checkin=ctx.message.channel.id) and not admin:
-            await Notification.send_alert(ctx=ctx, header="Scrims are not open",
+            await notification.send_alert(ctx=ctx, header="Scrims are not open",
                                           content="You can not check in right now")
             return
 
         if team_tag is not None:
             if not is_role_team(role=team_tag):
-                await Notification.send_alert(ctx=ctx, header="Role is no team", content="You have to tag a team role")
+                await notification.send_alert(ctx=ctx, header="Role is no team", content="You have to tag a team role")
                 return
 
             if not is_team_member(team=team_tag, member=ctx.message.author) and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check in this team")
                 return
 
@@ -749,7 +511,7 @@ class Scrim(commands.Cog):
             description = "{} *checked in by* {}".format(team_tag.mention, ctx.message.author.mention)
         else:
             if not member_tag == ctx.message.author and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check in this MIX")
                 return
 
@@ -761,11 +523,11 @@ class Scrim(commands.Cog):
         scrim_id = self.db.get_scrim_id(server_id=ctx.guild.id, checkin_id=ctx.message.channel.id)
 
         if not self.db.add_team(role_id=role_id, name=name, tier=tier, mention=mention, scrim_id=scrim_id):
-            await Notification.send_alert(ctx=ctx, header="Team is already checked in",
+            await notification.send_alert(ctx=ctx, header="Team is already checked in",
                                           content="You cant check in twice")
             return
 
-        await Notification.send_approve(ctx=ctx, title="Check in", description=description, permanent=True)
+        await notification.send_approve(ctx=ctx, title="Check in", description=description, permanent=True)
 
         await self.update_lobby(scrim_id=scrim_id)
 
@@ -775,7 +537,7 @@ class Scrim(commands.Cog):
 
         admin = self.client.db.is_admin(server_id=ctx.guild.id, member=ctx.message.author)
         if not self.db.is_checkout_channel(server_id=ctx.guild.id, channel_id=ctx.message.channel.id):
-            await Notification.send_alert(ctx=ctx, header="No check out channel",
+            await notification.send_alert(ctx=ctx, header="No check out channel",
                                           content="You have to use a check out channel")
             return
 
@@ -788,30 +550,30 @@ class Scrim(commands.Cog):
         if len(ctx.message.mentions) != 0:
             member_tag = ctx.message.mentions[0]
         if team_tag is None and member_tag is None and not self.has_tier5_role(ctx.message.author, ctx.guild.id):
-            await Notification.send_alert(ctx=ctx, header="No team or member tagged",
+            await notification.send_alert(ctx=ctx, header="No team or member tagged",
                                           content="Use:\n{}checkout <@your team>\nor\n{}checkout <@yourself>".format(
                                               self.client.prefix))
             return
 
         if not self.db.is_scrims_open(server_id=ctx.guild.id, checkout=ctx.message.channel.id) and not admin:
-            await Notification.send_alert(ctx=ctx, header="Scrims are not open",
+            await notification.send_alert(ctx=ctx, header="Scrims are not open",
                                           content="You can not check out right now")
             return
 
         if team_tag is not None:
             if not is_role_team(team_tag):
-                await Notification.send_alert(ctx=ctx, header="No team tagged", content="You have to tag a team")
+                await notification.send_alert(ctx=ctx, header="No team tagged", content="You have to tag a team")
                 return
 
             if not is_team_member(team=team_tag, member=ctx.message.author) and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check out this team")
                 return
             role_id = team_tag.id
             description = "{} *checked out by* {}".format(team_tag.mention, ctx.message.author.mention)
         else:
             if member_tag is not None and not member_tag == ctx.message.author and not admin:
-                await Notification.send_alert(ctx=ctx, header="Command denied",
+                await notification.send_alert(ctx=ctx, header="Command denied",
                                               content="You have no permission to check out this MIX")
                 return
 
@@ -824,11 +586,11 @@ class Scrim(commands.Cog):
                 description = "{}, MIX *checked out by* {}".format(member_tag.mention, ctx.message.author.mention)
 
         if not self.db.del_team(role_id=role_id, scrim_id=scrim_id):
-            await Notification.send_alert(ctx=ctx, header="Team was not check in",
+            await notification.send_alert(ctx=ctx, header="Team was not check in",
                                           content="You cant check out a team which wasn't checked in")
             return
 
-        await Notification.send_approve(ctx=ctx, title="Check out", description=description, permanent=True)
+        await notification.send_approve(ctx=ctx, title="Check out", description=description, permanent=True)
         await self.update_lobby(scrim_id=scrim_id)
 
     @commands.group(name="team", brief="Commands for team management")
@@ -934,7 +696,7 @@ class Scrim(commands.Cog):
         add_team_embed.add_field(name="Tier", value=tier_role.mention)
         await add_team_status_msg.edit(embed=add_team_embed)
 
-        await Notification.send_approve(ctx, header="Action successful", content="Team created")
+        await notification.send_approve(ctx, header="Action successful", content="Team created")
 
     # @team.command(name="edit", brief="Edit a team")
     @commands.has_guild_permissions(administrator=True)
@@ -989,7 +751,7 @@ class Scrim(commands.Cog):
             await select_msg.delete()
             return
 
-        selected = select[DictUtil.get_key_by_value(reaction, num_to_symbol) - 1]
+        selected = select[dict_util.get_key_by_value(reaction, num_to_symbol) - 1]
         if selected == selected[0]:
             pass  # ToDo make functions for selected category
 

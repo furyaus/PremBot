@@ -1,4 +1,4 @@
-from utils import Notification
+from utils import notification
 
 
 def role_mentioned(ctx):
@@ -7,13 +7,11 @@ def role_mentioned(ctx):
     else:
         message = "No role mentioned"
         print(message)
-        Notification.send_alert(ctx=ctx, header=message, content="")
+        notification.send_alert(ctx=ctx, header=message, content="")
         return False
-
 
 def is_numeric(message):
     return message.content.isnumeric()
-
 
 class Checks:
     def __init__(self, client):

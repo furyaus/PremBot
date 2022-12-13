@@ -1,7 +1,7 @@
 import asyncio
 
 from discord.ext import commands
-from utils import Notification
+from utils import notification
 import discord
 
 import os, discord, json, requests, asyncio
@@ -69,7 +69,7 @@ class Util(commands.Cog):
 
         category = discord.utils.get(guild.categories, name=category_name)
         if category is None:
-            await Notification.send_alert(ctx, header="Error 404", content="No category with this name found")
+            await notification.send_alert(ctx, header="Error 404", content="No category with this name found")
         else:
             for channel in category.channels:
                 await channel.delete()
