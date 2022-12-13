@@ -1,6 +1,6 @@
 import discord, json, requests, datetime
 from builtins import print
-
+from utils import notification
 from discord.ext import commands
 from requests import get
 
@@ -24,29 +24,38 @@ class alive(commands.Cog):
     # Repond to ping
     async def status(self, ctx):
         await ctx.message.delete()
+        response_msg = notification.botHelper.respmsg()
         fury = "fury#1119"
         user = ctx.message.author.name + '#' + ctx.message.author.discriminator
         if user == fury:
             time = datetime.datetime.now().strftime("%H:%M")
-            print(f"{time} PremBot was pinged")
+            print(f"{time} | PremBot was pinged")
             ip = get('https://api.ipify.org').text
-            await ctx.message.author.send(ip)
-
+            response_msg.add_field(name="Quote", value=ip, inline=False)
+            response_msg.timestamp = datetime.datetime.utcnow()
+            await ctx.message.author.send(embed=response_msg)
+      
     # Inspire any channel or DM
     @commands.command(name="inspire", brief="Collect Quote", description="Post Quote")
     async def inspire(self, ctx):
+        response_msg = notification.botHelper.respmsg()
         time = datetime.datetime.now().strftime("%H:%M")
-        print(f"{time} PremBot Inspired Someone")
-        await ctx.send(quote())
-      
+        print(f"{time} | PremBot Inspired Someone")
+        response_msg.add_field(name="Quote", value=quote(), inline=False)
+        response_msg.timestamp = datetime.datetime.utcnow()
+        await ctx.send(embed=response_msg)
+  
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.bot.user:
             return # Exiting if the author of the message is ourself
-        if isinstance(message.channel, discord.DMChannel):
-            await message.channel.send("No DM's")
+        if isinstance(message.channel, discord.DMChannel) and not message.startswith('.'):
+            response_msg = notification.botHelper.respmsg()
+            response_msg.add_field(name="Quote", value="No DM's", inline=False)
+            response_msg.timestamp = datetime.datetime.utcnow()
+            await message.channel.send(embed=response_msg)
             time = datetime.datetime.now().strftime("%H:%M")
             print(f"{time} | Auto Reply Message send to {message.author}")
-
+      
 async def setup(client):
     await client.add_cog(alive(client))

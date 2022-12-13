@@ -1,5 +1,17 @@
 import discord
 
+class botHelper():
+    def respmsg(titleText=None, descText=None):
+        if (titleText == None and descText == None):
+            response_msg = discord.Embed(colour=discord.Colour.green())
+        if (titleText != None and descText == None):
+            response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText)
+        if (titleText == None and descText != None):
+            response_msg = discord.Embed(colour=discord.Colour.green(),description=descText)
+        if (titleText != None and descText != None):
+            response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText,description=descText)
+        response_msg.set_thumbnail(url="https://i.ibb.co/GCTgdsz/premlogo-100px.png")
+        return response_msg
 
 async def send_alert(ctx, header=None, content=None, title="Notification", description=None, permanent=False):
     if description is None:
@@ -13,7 +25,6 @@ async def send_alert(ctx, header=None, content=None, title="Notification", descr
         await ctx.message.channel.send(embed=notification, delete_after=10)
     else:
         await ctx.message.channel.send(embed=notification)
-
 
 async def send_approve(ctx, header=None, content=None, title="Notification", description=None, permanent=False):
 
