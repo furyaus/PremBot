@@ -4,7 +4,7 @@ from discord.ext import commands
 from requests import get
 
 
-class Pinger(commands.Cog):
+class alive(commands.Cog):
     def __init__(self, client):
         pass
 
@@ -22,4 +22,4 @@ class Pinger(commands.Cog):
             await ctx.message.author.send(ip)
 
 async def setup(client):
-    await client.add_cog(Pinger(client))
+    await client.add_cog(alive(client))
