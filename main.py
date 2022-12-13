@@ -33,7 +33,7 @@ intents.members = True
 client = Bot(command_prefix=BOT_PREFIX, intents=intents)
 client.db = mysqlcon(HOST, USER, PASSWORD, DATABASE)
 client.prefix = BOT_PREFIX
-client.checks = Checks(client=client)
+client.checks = checks(client=client)
 
 if __name__ == 'main':
     for extension in extensions:
