@@ -11,7 +11,7 @@ from discord import Activity
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord import Intents
-from utils.jsoncon import jsoncon
+
 from utils.mysqlcon import mysqlcon
 from utils.Checks import checks
 from utils import notification
