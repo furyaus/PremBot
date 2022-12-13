@@ -1,8 +1,6 @@
 from builtins import print
 
-import discord
 from discord.ext import commands
-from ipaddress import ip_address
 from requests import get
 
 
@@ -11,7 +9,7 @@ class Pinger(commands.Cog):
         pass
 
     @commands.command()
-    #@commands.has_guild_permissions(administrator=True)
+    @commands.has_guild_permissions(administrator=True)
     async def status(self, ctx):
         await ctx.message.delete()
 
