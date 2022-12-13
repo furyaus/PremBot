@@ -6,7 +6,7 @@
 # Repl.it: https://replit.com/@furyaus/prembot
 # Credit to Speedy from EU PUBG: https://github.com/mihawk123/DiscordScrimBot
 
-import os, discord
+import os, discord, json, requests
 from discord.ext import commands
 
 # Global variables
