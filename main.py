@@ -7,14 +7,63 @@
 # Credit to Speedy from EU PUBG: https://github.com/mihawk123/DiscordScrimBot
 
 import os, discord, json, requests
+from discord import Activity
 from discord.ext import commands
+from discord.ext.commands import Bot
+from discord import Intents
+from utils.JsonCon import JsonCon
+from utils.MySQLCon import MySQLCon
+from utils.Checks import Checks
+from utils import Notification
 
-# Global variables
-clientintents = discord.Intents.all()
-clientintents.members = True
-my_token = os.getenv('bot_token')
-client = commands.Bot(command_prefix=".", intents=clientintents)
+print("Bot is starting...")
 
+BOT_PREFIX = "!"
+TOKEN = os.getenv('bot_token')
+HOST = os.getenv('host')
+USER = os.getenv('user')
+PASSWORD = os.getenv('password')
+DATABASE = os.getenv('database')
+
+extensions = ["cogs.Settings", "cogs.Scrim", "cogs.Pinger", "cogs.Util"]
+
+intents = Intents.default()
+intents.members = True
+
+client = Bot(command_prefix=BOT_PREFIX, intents=intents)
+client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
+client.prefix = BOT_PREFIX
+client.checks = Checks(client=client)
+
+if __name__ == 'main':
+    for extension in extensions:
+        try:
+            client.load_extension(extension)
+            print('{} loaded successfully'.format(extension))
+        except Exception as error:
+            print('{} cannot be loaded. [{}]'.format(extension, error))
+
+@client.event
+async def on_guild_join(guild):
+    print("Bot joined server: " + guild.name + "<" + str(guild.id) + ">")
+    client.db.init_server(guild.id, guild.name)
+
+#@client.check
+#async def globally_block_dms(ctx):
+#    return ctx.guild is not None
+
+#@client.check
+#async def globally_block_bot(ctx):
+#    return not ctx.author.bot
+
+@client.command(name="restart", brief="reconnect to database")
+@commands.has_guild_permissions(administrator=True)
+async def reconnect_db(ctx):
+    await ctx.message.delete()
+    client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
+    await Notification.send_approve(ctx, description="Reconnected to database")
+
+# Collect quotes
 def quote():
     request = requests.get("https://leksell.io/zen/api/quotes/random")
     json_data = json.loads(request.text)
@@ -47,10 +96,9 @@ async def inspire(ctx):
 # Report Bot is running
 @client.event
 async def on_ready():
+    status = Activity(name=BOT_PREFIX + "help", type=2)
+    await client.change_presence(activity=status)
     print(str(client.user)+" is ready\n")
-  
+
 # Run the bot
-try:
-    client.run(my_token)
-except:
-    os.system("kill 1")
+client.run(TOKEN, bot=True, reconnect=True)
