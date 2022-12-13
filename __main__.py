@@ -35,7 +35,7 @@ client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
 client.prefix = BOT_PREFIX
 client.checks = Checks(client=client)
 
-if __name__ == 'main':
+if __name__ == '__main__':
     for extension in extensions:
         try:
             client.load_extension(extension)
