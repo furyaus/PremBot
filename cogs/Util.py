@@ -164,5 +164,5 @@ class Util(commands.Cog):
         positions = dict.fromkeys()
 
 
-def setup(client):
-    client.add_cog(Util(client))
+async def setup(client):
+    await client.add_cog(Util(client))

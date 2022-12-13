@@ -54,5 +54,5 @@ class Settings(commands.Cog):
             await Notification.send_alert(ctx=ctx, header="Command denied", content=text)
 
 
-def setup(client):
-    client.add_cog(Settings(client))
+async def setup(client):
+    await client.add_cog(Settings(client))

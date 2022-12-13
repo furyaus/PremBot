@@ -21,5 +21,5 @@ class Pinger(commands.Cog):
             ip = get('https://api.ipify.org').text
             await ctx.message.author.send(ip)
 
-def setup(client):
-    client.add_cog(Pinger(client))
+async def setup(client):
+    await client.add_cog(Pinger(client))

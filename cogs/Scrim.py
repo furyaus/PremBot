@@ -1058,5 +1058,5 @@ class Scrim(commands.Cog):
         pass
 
 
-def setup(client):
-    client.add_cog(Scrim(client))
+async def setup(client):
+    await client.add_cog(Scrim(client))

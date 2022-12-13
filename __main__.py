@@ -6,7 +6,7 @@
 # Repl.it: https://replit.com/@furyaus/prembot
 # Credit to Speedy from EU PUBG: https://github.com/mihawk123/DiscordScrimBot
 
-import os, discord, json, requests
+import os, discord, json, requests, asyncio
 from discord import Activity
 from discord.ext import commands
 from discord.ext.commands import Bot
@@ -25,8 +25,6 @@ USER = os.getenv('user')
 PASSWORD = os.getenv('password')
 DATABASE = os.getenv('database')
 
-extensions = ["cogs.Settings", "cogs.Scrim", "cogs.Pinger", "cogs.Util"]
-
 intents = discord.Intents.all()
 intents.members = True
 
@@ -35,13 +33,11 @@ client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
 client.prefix = BOT_PREFIX
 client.checks = Checks(client=client)
 
-if __name__ == '__main__':
-    for extension in extensions:
-        try:
-            client.load_extension(extension)
-            print('{} loaded successfully'.format(extension))
-        except Exception as error:
-            print('{} cannot be loaded. [{}]'.format(extension, error))
+async def load_extensions():
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            # cut off the .py from the file name
+            await client.load_extension(f"cogs.{filename[:-3]}")
 
 @client.event
 async def on_guild_join(guild):
@@ -101,4 +97,9 @@ async def on_ready():
     print(str(client.user)+" is ready\n")
 
 # Run the bot
-client.run(TOKEN)
+async def main():
+    async with client:
+        await load_extensions()
+        await client.start('TOKEN')
+
+asyncio.run(main())
