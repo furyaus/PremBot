@@ -12,7 +12,8 @@ from discord.ext import commands
 # Global variables
 clientintents = discord.Intents.all()
 clientintents.members = True
-my_token = os.environ['bot_token']
+#my_token = os.environ['bot_token']
+my_token = os.getenv('bot_token')
 client = commands.Bot(command_prefix=".", intents=clientintents)
 
 # Report Bot is running
