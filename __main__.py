@@ -101,6 +101,6 @@ async def on_ready():
 async def main():
     async with client:
         await load_extensions()
-        await client.start('TOKEN')
+        await client.start(TOKEN)
 
 asyncio.run(main())
