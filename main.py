@@ -101,4 +101,4 @@ async def on_ready():
     print(str(client.user)+" is ready\n")
 
 # Run the bot
-client.run(TOKEN, bot=True, reconnect=True)
+client.run(TOKEN)
