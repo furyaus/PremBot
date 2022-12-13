@@ -16,23 +16,40 @@ clientintents.members = True
 my_token = os.getenv('bot_token')
 client = commands.Bot(command_prefix=".", intents=clientintents)
 
-# Report Bot is running
-@client.event
-async def on_ready():
-    print(str(client.user)+" running ")
+def quote():
+    request = requests.get("https://leksell.io/zen/api/quotes/random")
+    json_data = json.loads(request.text)
+    quote = json_data['quote'] + " -" + json_data['author']
+    if request.status_code != 200:
+        request = requests.get("https://zenquotes.io/api/random")
+        json_data = json.loads(request.text)
+        quote = json_data[0]['q'] + " -" + json_data[0]['a']
+    return quote
 
-# Hello to DMs
+# Respond to DMs
 @client.event
 async def on_message(message):
-    if message.author != client.user:
-        if message.content.startswith('.hello'):
-            await message.channel.send('Hello!')
+    if message.author == client.user:
+        return
+    if isinstance(message.channel,discord.DMChannel):
+        await message.channel.send("No private messages while at work")
+    await client.process_commands(message)
 
 # Hello any channel
 @client.command()
 async def hello(ctx):
     await ctx.send('hello!')
 
+# Inspire the channel
+@client.command()
+async def inspire(ctx):
+    await ctx.send(quote())
+
+# Report Bot is running
+@client.event
+async def on_ready():
+    print(str(client.user)+" is ready\n")
+  
 # Run the bot
 try:
     client.run(my_token)
