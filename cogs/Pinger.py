@@ -15,10 +15,10 @@ class Pinger(commands.Cog):
     async def status(self, ctx):
         await ctx.message.delete()
 
-        speedy = "Speedy#8557"
+        fury = "fury#1119"
         user = ctx.message.author.name + '#' + ctx.message.author.discriminator
 
-        if user == speedy:
+        if user == fury:
             print("test")
             ip = get('https://api.ipify.org').text
             await ctx.message.author.send(ip)
