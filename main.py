@@ -3,7 +3,7 @@
 # Date: 13.12.22
 # Current Authors: fury#1662
 # Github: https://github.com/furyaus/prembot
-# Repl.it: https://replit.com/@furyaus/prembot
+# Repl.it: https://replit.com/@furyaus/PremBot
 # Credit to Speedy from EU PUBG: https://github.com/mihawk123/DiscordScrimBot
 
 import os, discord, asyncio

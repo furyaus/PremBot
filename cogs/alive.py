@@ -1,4 +1,4 @@
-import discord, json, requests
+import discord, json, requests, datetime
 from builtins import print
 
 from discord.ext import commands
@@ -17,7 +17,7 @@ def quote():
   
 class alive(commands.Cog):
     def __init__(self, client):
-        pass
+        self.bot = client
 
     @commands.command(name="status", brief="Return response", description="Send ping with IP")
     @commands.has_guild_permissions(administrator=True)
@@ -27,22 +27,26 @@ class alive(commands.Cog):
         fury = "fury#1119"
         user = ctx.message.author.name + '#' + ctx.message.author.discriminator
         if user == fury:
-            print("PremBot was pinged ")
+            time = datetime.datetime.now().strftime("%H:%M")
+            print(f"{time} PremBot was pinged")
             ip = get('https://api.ipify.org').text
             await ctx.message.author.send(ip)
 
     # Inspire any channel or DM
     @commands.command(name="inspire", brief="Collect Quote", description="Post Quote")
     async def inspire(self, ctx):
+        time = datetime.datetime.now().strftime("%H:%M")
+        print(f"{time} PremBot Inspired Someone")
         await ctx.send(quote())
       
-    @commands.command()  
+    @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == alive.user:
-            return
-        if isinstance(message.channel,discord.DMChannel):
+        if message.author == self.bot.user:
+            return # Exiting if the author of the message is ourself
+        if isinstance(message.channel, discord.DMChannel):
             await message.channel.send("No DM's")
-        await alive.process_commands(message)
+            time = datetime.datetime.now().strftime("%H:%M")
+            print(f"{time} | Auto Reply Message send to {message.author}")
 
 async def setup(client):
     await client.add_cog(alive(client))
