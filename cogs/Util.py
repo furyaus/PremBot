@@ -22,12 +22,12 @@ class Util(commands.Cog):
 
     @commands.group(name="clear", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def clear(self):
+    async def clear(self, ctx):
         pass
 
     @commands.group(name="utils", alias="util", brief="Useful scripts", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
-    async def utils(self):
+    async def utils(self, ctx):
         pass
 
     @commands.command(name="mixterms")
@@ -142,7 +142,7 @@ class Util(commands.Cog):
 
     @utils.group(name="sort", invoke_without_command=True, brief="Sorting scripts")
     @commands.has_guild_permissions(administrator=True)
-    async def sort(self):
+    async def sort(self, ctx):
         pass
 
     @sort.command(name="teams")
