@@ -290,7 +290,7 @@ class Scrim(commands.Cog):
         embed = discord.Embed(title="Next step", color=blue, footer="Messages gets deleted after 60 seconds")
         embed.set_footer(text="Messages gets deleted after 60 seconds")
         embed.add_field(name="Name", value="Type in the name of the scrims")
-        name_msg = await ctx.message.channel.send(embed=embed, delete_after=60)
+        name_msg = await ctx.channel.send(embed=embed, delete_after=60)
 
         def same_channel_same_author_check(message):
             return message.author == ctx.message.author and message.channel == ctx.message.channel
@@ -309,7 +309,7 @@ class Scrim(commands.Cog):
         embed.clear_fields()
         embed.add_field(name="Select mode", value="1️⃣: Tier sorted\n2️⃣: First come first serve")
 
-        mode_msg = await ctx.message.channel.send(embed=embed, delete_after=60)
+        mode_msg = await ctx.channel.send(embed=embed, delete_after=60)
 
         await mode_msg.add_reaction('1️⃣')
         await mode_msg.add_reaction('2️⃣')
@@ -336,7 +336,7 @@ class Scrim(commands.Cog):
         """" Lobby count """
         embed.clear_fields()
         embed.add_field(name="Lobby count", value="How many lobbies do you want to host")
-        lobby_count_msg = await ctx.message.channel.send(embed=embed, delete_after=60)
+        lobby_count_msg = await ctx.channel.send(embed=embed, delete_after=60)
 
         try:
             lobby_count_res = await self.client.wait_for('message', check=Checks.is_numeric, timeout=60.0)
@@ -352,7 +352,7 @@ class Scrim(commands.Cog):
         """ Min teams"""
         embed.clear_fields()
         embed.add_field(name="Minimum teams", value="How many teams are needed for one lobby")
-        min_teams_msg = await ctx.message.channel.send(embed=embed, delete_after=60)
+        min_teams_msg = await ctx.channel.send(embed=embed, delete_after=60)
 
         def min_teams_check(message):
             if same_channel_same_author_check(message):
