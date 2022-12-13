@@ -17,7 +17,7 @@ class Pinger(commands.Cog):
         user = ctx.message.author.name + '#' + ctx.message.author.discriminator
 
         if user == fury:
-            print("test")
+            print("PremBot is Up ")
             ip = get('https://api.ipify.org').text
             await ctx.message.author.send(ip)
 
