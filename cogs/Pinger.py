@@ -11,7 +11,7 @@ class Pinger(commands.Cog):
         pass
 
     @commands.command()
-    @commands.has_guild_permissions(administrator=True)
+    #@commands.has_guild_permissions(administrator=True)
     async def status(self, ctx):
         await ctx.message.delete()
 
