@@ -82,6 +82,14 @@ python-versions = "*"
 "discord.py" = ">=2.1.0"
 
 [[package]]
+name = "discord-pretty-help"
+version = "2.0.0"
+description = "And nicer looking interactive help menu for discord.py"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[[package]]
 name = "discord.py"
 version = "2.1.0"
 description = "A Python wrapper for the Discord API"
@@ -168,7 +176,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "dfd5e7c822b508791d0c3556bd7d2d378f68a806ead6423cff7e543a4407dfb6"
+content-hash = "a42d63f07cb3733879ecf24a5beb24c70f37ad1b16890acda57e4032dff88075"
 
 [metadata.files]
 aiohttp = []
@@ -178,6 +186,7 @@ attrs = []
 certifi = []
 charset-normalizer = []
 discord = []
+discord-pretty-help = []
 "discord.py" = []
 frozenlist = []
 idna = []

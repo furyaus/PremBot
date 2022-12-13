@@ -9,11 +9,12 @@
 import os, discord, asyncio
 from discord import Activity
 from discord.ext import commands
+from pretty_help import PrettyHelp
 
 # Global tokens
 bot_token = os.environ['bot_token']
 clientintents = discord.Intents.all()
-client = commands.Bot(command_prefix=".", intents=clientintents)
+client = commands.Bot(command_prefix="!", intents=clientintents, help_command=PrettyHelp())
 
 # Load cogs
 async def load_extensions():
@@ -26,7 +27,7 @@ async def load_extensions():
 # Report Bot is running
 @client.event
 async def on_ready():
-    status = Activity(name=".help", type=2)
+    status = Activity(name="!help", type=2)
     await client.change_presence(activity=status)
     print(str(client.user)+" is ready\n")
 

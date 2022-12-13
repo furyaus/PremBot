@@ -1,0 +1,4 @@
+[console_scripts]
+emoji=tests.test_pretty_help:run_emoji
+run=tests.test_pretty_help:run
+

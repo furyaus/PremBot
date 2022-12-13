@@ -15,7 +15,7 @@ def quote():
         quote = json_data[0]['q'] + " -" + json_data[0]['a']
     return quote
   
-class alive(commands.Cog):
+class Alive(commands.Cog):
     def __init__(self, client):
         self.bot = client
 
@@ -58,4 +58,4 @@ class alive(commands.Cog):
             print(f"{time} | Auto Reply Message send to {message.author}")
       
 async def setup(client):
-    await client.add_cog(alive(client))
+    await client.add_cog(Alive(client))
