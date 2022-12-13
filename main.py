@@ -11,10 +11,10 @@ from discord import Activity
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord import Intents
-from utils.JsonCon import JsonCon
-from utils.MySQLCon import MySQLCon
-from utils.Checks import Checks
-from utils import Notification
+from utils.jsoncon import jsoncon
+from utils.mysqlcon import mysqlcon
+from utils.Checks import checks
+from utils import notification
 
 print("Bot is starting...")
 
@@ -31,7 +31,7 @@ intents = Intents.default()
 intents.members = True
 
 client = Bot(command_prefix=BOT_PREFIX, intents=intents)
-client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
+client.db = mysqlcon(HOST, USER, PASSWORD, DATABASE)
 client.prefix = BOT_PREFIX
 client.checks = Checks(client=client)
 
@@ -60,8 +60,8 @@ async def on_guild_join(guild):
 @commands.has_guild_permissions(administrator=True)
 async def reconnect_db(ctx):
     await ctx.message.delete()
-    client.db = MySQLCon(HOST, USER, PASSWORD, DATABASE)
-    await Notification.send_approve(ctx, description="Reconnected to database")
+    client.db = mysqlcon(HOST, USER, PASSWORD, DATABASE)
+    await notification.send_approve(ctx, description="Reconnected to database")
 
 # Collect quotes
 def quote():
