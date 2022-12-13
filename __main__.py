@@ -38,7 +38,7 @@ async def load_extensions():
         if filename.endswith(".py"):
             # cut off the .py from the file name
             await client.load_extension(f"cogs.{filename[:-3]}")
-            print('{} loaded successfully'.f("cogs.{filename[:-3]}"))
+            print('Cogs loaded successfully')
 
 @client.event
 async def on_guild_join(guild):
