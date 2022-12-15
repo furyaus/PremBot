@@ -1,6 +1,5 @@
 from utils import notification
 
-
 def role_mentioned(ctx):
     if len(ctx.message.role_mentions) != 0:
         return True
@@ -12,10 +11,3 @@ def role_mentioned(ctx):
 
 def is_numeric(message):
     return message.content.isnumeric()
-
-class Checks:
-    def __init__(self, client):
-        self.db = client.db
-
-    def is_admin(self, ctx):
-        return self.db.is_admin(ctx=ctx, server_id=ctx.guild.id, member=ctx.message.author)

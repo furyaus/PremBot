@@ -3,11 +3,9 @@ from discord.ext import commands
 from utils import checks
 from utils import notification
 
-
-class Settings(commands.Cog):
-    def __init__(self, client):
-        self.client = client
-        #self.db = self.client.db
+class Settings(commands.Cog, description="Commands for bot settings"):
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.group(name="settings", invoke_without_command=True)
     @commands.has_guild_permissions(administrator=True)
@@ -25,16 +23,6 @@ class Settings(commands.Cog):
     async def setting_add_admin(self, ctx):
         print("Adding admin role to server:" + ctx.guild.name)
 
-     #   new_admin_role = ctx.message.role_mentions[0]
-       #if self.db.is_admin_role(server_id=ctx.guild.id, role_id=new_admin_role.id):
-          #  text = new_admin_role.mention + " is already admin on the server"
-          #  print(text)
-          #  await notification.send_alert(ctx=ctx, header="Command denied", content=text)
-        #else:
-       #    self.db.add_admin_role(role_id=new_admin_role.id, role_name=new_admin_role.name, server_id=ctx.guild.id)
-        #    text = new_admin_role.mention + " has been added"
-        #    print(text)
-        #    await notification.send_approve(ctx=ctx, header="Done", content=text)
 
     @setting_admin.command(name="remove")
     @commands.check(checks.role_mentioned)
@@ -42,16 +30,6 @@ class Settings(commands.Cog):
     async def setting_remove_admin(self, ctx):
         print("Removing admin role from server:" + ctx.guild.name)
 
-    #   role_to_delete = ctx.message.role_mentions[0]
-      #  if self.db.is_admin_role(server_id=ctx.guild.id, role_id=role_to_delete.id):
-         #   self.db.remove_admin_role(role_id=role_to_delete.id, server_id=ctx.guild.id)
-        #   text = role_to_delete.mention + " has been removed"
-        #   print(text)
-        #    await notification.send_approve(ctx=ctx, header="Done", content=text)
-     #   else:
-     #       text = role_to_delete.mention + " is not an admin"
-     #       print(text)
-      #      await notification.send_alert(ctx=ctx, header="Command denied", content=text)
 
-async def setup(client):
-    await client.add_cog(Settings(client))
+async def setup(bot):
+    await bot.add_cog(Settings(bot))

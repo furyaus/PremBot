@@ -1,17 +1,30 @@
-import discord
+import discord, json, requests
+from utils import dates_time
 
-class botHelper():
-    def respmsg(titleText=None, descText=None):
-        if (titleText == None and descText == None):
-            response_msg = discord.Embed(colour=discord.Colour.green())
-        if (titleText != None and descText == None):
-            response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText)
-        if (titleText == None and descText != None):
-            response_msg = discord.Embed(colour=discord.Colour.green(),description=descText)
-        if (titleText != None and descText != None):
-            response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText,description=descText)
-        response_msg.set_thumbnail(url="https://i.ibb.co/GCTgdsz/premlogo-100px.png")
-        return response_msg
+def respmsg(titleText=None, descText=None):
+    if (titleText == None and descText == None):
+        response_msg = discord.Embed(colour=discord.Colour.green())
+    if (titleText != None and descText == None):
+        response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText)
+    if (titleText == None and descText != None):
+        response_msg = discord.Embed(colour=discord.Colour.green(),description=descText)
+    if (titleText != None and descText != None):
+        response_msg = discord.Embed(colour=discord.Colour.green(),title=titleText,description=descText)
+    response_msg.set_thumbnail(url="https://i.ibb.co/GCTgdsz/premlogo-100px.png")
+    return response_msg
+
+def printcon(content):
+    print(f"{dates_time.get_now()} | "+content)
+ 
+def quote():
+    request = requests.get("https://leksell.io/zen/api/quotes/random")
+    json_data = json.loads(request.text)
+    quote = json_data['quote'] + " -" + json_data['author']
+    if request.status_code != 200:
+        request = requests.get("https://zenquotes.io/api/random")
+        json_data = json.loads(request.text)
+        quote = json_data[0]['q'] + " -" + json_data[0]['a']
+    return quote
 
 async def send_alert(ctx, header=None, content=None, title="Notification", description=None, permanent=False):
     if description is None:
