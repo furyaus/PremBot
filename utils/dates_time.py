@@ -2,7 +2,7 @@ import datetime
 from pytz import timezone
 
 # Set timezone
-tz = timezone("Australia/Sydney")
+tz = timezone("Australia/Brisbane")
 
 def get_nowutc():
     now = datetime.datetime.utcnow()

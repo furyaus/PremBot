@@ -21,11 +21,13 @@ def respmsg(titleText=None, descText=None):
     response_msg.timestamp = dates_time.get_nowutc()
     return response_msg
 
-def openscrims():
+def openscrims(teamlist=None):
     response_msg = respmsg("Open scrims signup")
     response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```**Or you'll be given a strike!**\n", inline=False)
     response_msg.add_field(name="Check In - oceanic team:", value="```Example```", inline=False)
     response_msg.add_field(name="Check In - fill team:", value="```Example```", inline=False)
+    if teamlist is not None:
+        response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     return response_msg
 
 def closescrims():
