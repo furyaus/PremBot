@@ -1,5 +1,5 @@
 import discord
-from utils import notification, dates_time
+from utils import notification
 from discord.ext import commands
 from requests import get
   
@@ -15,7 +15,6 @@ class Tools(commands.Cog, description="Commands to confirm bot is OK"):
         response_msg = notification.respmsg()
         ip = get('https://api.ipify.org').text
         response_msg.add_field(name="Ping", value=ip, inline=False)
-        response_msg.timestamp = dates_time.get_nowutc()
         notification.printcon(f"PremBot was pinged by {ctx.message.author}")
         await ctx.message.author.send(embed=response_msg)
       
@@ -24,7 +23,6 @@ class Tools(commands.Cog, description="Commands to confirm bot is OK"):
     async def inspire(self, ctx):
         response_msg = notification.respmsg()
         response_msg.add_field(name="Quote", value=notification.quote(), inline=False)
-        response_msg.timestamp = dates_time.get_nowutc()
         notification.printcon(f"PremBot Inspired {ctx.message.author}")
         await ctx.message.channel.send(embed=response_msg)
       
@@ -36,7 +34,6 @@ class Tools(commands.Cog, description="Commands to confirm bot is OK"):
         if isinstance(message.channel, discord.DMChannel):
             response_msg = notification.respmsg()
             response_msg.add_field(name="Private Messages", value="No DM's", inline=False)
-            response_msg.timestamp = dates_time.get_nowutc()
             await message.channel.send(embed=response_msg)
             notification.printcon(f"Auto Reply Message send to {message.author}")
       
