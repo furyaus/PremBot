@@ -45,7 +45,7 @@ def quote():
         quote = json_data[0]['q'] + " -" + json_data[0]['a']
     return quote
 
-async def send_alert(ctx, header=None, content=None, title="Notification", description=None, permanent=False):
+async def send_alert(ctx, header=None, content=None, title="Alert", description=None, permanent=False):
     if description is None:
         notification = discord.Embed(title=title, color=0xD10000)
     else:

@@ -13,7 +13,9 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
     def __init__(self, bot):
         self.bot = bot
         self.checkinopen = False
-        self.teamlist = []
+        self.checkoutclosed = False
+        self.teams = []
+        self.fillteams = []
       
     @commands.Cog.listener()
     async def on_ready(self):
@@ -33,17 +35,21 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
             signupmsg = await channel.send(embed=notification.openscrims())
         self.checkinopen = True
         #await asyncio.sleep(dates_time.seconds_until(6, 00))
+        await asyncio.sleep(35)
+        self.checkoutclosed = True
+        notification.printcon("Checkout closed")
         await asyncio.sleep(45)
         self.checkinopen = False
-        self.teamlist.clear()
+        self.teams.clear()
+        self.fillteams.clear()
         await signupmsg.edit(embed=notification.closescrims())
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):
         signupmsg = await ctx.fetch_message(signup_message_id)
-        #user = ctx.message.author
+        user = ctx.message.author
         await ctx.message.delete()
-        teams = ""
+        teamstr = ""
       
         if not self.checkinopen:
             await notification.send_alert(ctx=ctx, header="Scrims are not open",content="You can not check in right now")
@@ -51,17 +57,60 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
                   
         if len(ctx.message.role_mentions) != 0:
             team_tag = ctx.message.role_mentions[0] 
-            self.teamlist.append(team_tag)
+            self.teams.append(team_tag)
+            notification.printcon(f"{team_tag} team has checked in")
         else: 
-            team_tag = None
-            fill_role = ctx.guild.get_role(fill_role_id)
-            self.teamlist.append(fill_role)
+            self.fillteams.append(user)
+            notification.printcon(f"{user} fill team has checked in")
           
-        for slot, team in enumerate(self.teamlist):
-            teams += "Slot {}: {}\n".format(slot+3, team.mention)
-            print(teams)
+        for slot, team in enumerate(self.teams):
+            teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
+        for slot, user in enumerate(self.fillteams):
+            teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
 
-        await signupmsg.edit(embed=notification.openscrims(teams))
+        await signupmsg.edit(embed=notification.openscrims(teamstr))
+
+    @commands.command(name="checkout", brief="Check out a team")
+    async def checkout(self, ctx):
+        signupmsg = await ctx.fetch_message(signup_message_id)
+        user = ctx.message.author
+        await ctx.message.delete()
+        teamstr = ""
+      
+        if not self.checkinopen:
+            await notification.send_alert(ctx=ctx, header="Scrims are not open",content="You can not check in right now")
+            return
+
+        if self.checkoutclosed:
+            await notification.send_alert(ctx=ctx, header="Past check out time",content="You will be striked - type !latecheckout")
+            return
+      
+        if len(ctx.message.role_mentions) != 0:
+            team_tag = ctx.message.role_mentions[0] 
+            self.teams.remove(team_tag)
+            notification.printcon(f"{team_tag} team has checked out")
+        else: 
+            self.fillteams.remove(user)
+            notification.printcon(f"{user} fill team has checked out")
+
+        if self.teams or self.fillteams:
+            for slot, team in enumerate(self.teams):
+                teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
+            for slot, user in enumerate(self.fillteams):
+                teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
+              
+            await signupmsg.edit(embed=notification.openscrims(teamstr))
+        else:
+            await signupmsg.edit(embed=notification.openscrims())
+
+    @commands.command(name="latecheckout", brief="Late checkout of team")
+    async def latecheckout(self, ctx):
+        self.checkoutclosed = False
+        user = ctx.message.author
+        notification.printcon(f"{user} has checkedout late")
+        await self.checkout(ctx)
+        self.checkoutclosed = True
+
         
 async def setup(bot):
     await bot.add_cog(Scrim(bot))
