@@ -4,6 +4,11 @@ from utils import dates_time
 def printcon(content):
     print(f"{dates_time.get_now()} | "+content)
 
+def printlog(content):
+    response_msg = respmsg("Bot Log")
+    response_msg.add_field(name="Log", value=content, inline=False)
+    return response_msg
+
 def respmsg(titleText=None, descText=None):
     if (titleText == None and descText == None):
         response_msg = discord.Embed(colour=discord.Colour.green())

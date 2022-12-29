@@ -6,7 +6,7 @@
 # Repl.it: https://replit.com/@furyaus/PremBot
 # Credit to Speedy from EU PUBG: https://github.com/mihawk123/DiscordScrimBot
 
-import os, discord, asyncio
+import os, discord, asyncio, traceback
 from utils import notification
 from discord import Activity
 from discord.ext import commands
@@ -16,6 +16,7 @@ from pretty_help import PrettyHelp
 bot_token = os.environ['bot_token']
 botintents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=botintents, help_command=PrettyHelp())
+bot_log_channel_id = int(os.environ['bot_log_channel_id'])
 
 # Load cogs
 async def load_extensions():
@@ -31,6 +32,24 @@ async def on_ready():
     status = Activity(name="!help", type=2)
     await bot.change_presence(activity=status)
     notification.printcon(f"{bot.user.name} is online and ready!\n")
+
+# Catch unknown commands
+@bot.event
+async def on_command_error(ctx, error):
+    logchannel = bot.get_channel(bot_log_channel_id)
+    response_msg = notification.respmsg()
+    response_msg.description = "Command Error"
+    response_msg.add_field(name="Error",value=f"An error occured: {str(error)}",inline=False)
+    await logchannel.send(embed=response_msg)
+
+# Let admin know about errors
+@bot.event
+async def on_error(event, *args, **kwargs):
+    logchannel = bot.get_channel(bot_log_channel_id)
+    response_msg = notification.respmsg()
+    response_msg.description = event
+    response_msg.add_field(name='Event',value='```py\n%s\n```' % traceback.format_exc())
+    await logchannel.send(embed=response_msg)
 
 # Run the bot
 async def main():
