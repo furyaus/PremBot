@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from utils import notification, dates_time
 
 discord_server_id = int(os.environ['discord_server_id'])
+bot_admin_channel_id = int(os.environ['bot_admin_channel_id'])
 signup_channel_id = int(os.environ['signup_channel_id'])
 lobby1_channel_id = int(os.environ['lobby1_channel_id'])
 signup_message_id = int(os.environ['signup_message_id'])
@@ -132,10 +133,15 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
     async def latecheckout(self, ctx):
         self.checkoutclosed = False
         user = ctx.message.author
-        notification.printcon(f"{user} has checkedout late")
         await self.checkout(ctx)
+        botadminchannel = self.bot.get_channel(bot_admin_channel_id)
+        if len(ctx.message.role_mentions) != 0:
+            team_tag = ctx.message.role_mentions[0] 
+            await botadminchannel.send(embed=notification.latecheckout(user.mention, team_tag.mention))
+        else: 
+            await botadminchannel.send(embed=notification.latecheckout(user.mention))
+        notification.printcon(f"{user} has checkedout late")
         self.checkoutclosed = True
 
-        
 async def setup(bot):
     await bot.add_cog(Scrim(bot))

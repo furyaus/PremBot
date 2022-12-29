@@ -21,6 +21,13 @@ def respmsg(titleText=None, descText=None):
     response_msg.timestamp = dates_time.get_nowutc()
     return response_msg
 
+def latecheckout(user, team=None):
+    response_msg = respmsg("Late check out")
+    response_msg.add_field(name="User", value=user, inline=False)
+    if team:
+        response_msg.add_field(name="Team", value=team, inline=False)
+    return response_msg
+
 def openscrims(teamlist=None):
     response_msg = respmsg("Scrim signup is open")
     response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```**Or you'll be given a strike!**\n", inline=False)
