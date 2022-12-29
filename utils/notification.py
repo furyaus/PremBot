@@ -49,7 +49,7 @@ def closescrims():
     return response_msg
 
 def postlobby(teamlist=None, lobbynum=1):
-    response_msg = respmsg(f"Lobby {lobbynum} | {dates_time.get_today()}")
+    response_msg = respmsg(f"Lobby {lobbynum}  |  {dates_time.get_today()}")
     response_msg.add_field(name="password", value="```yeet```", inline=False)
     response_msg.add_field(name="Time", value="```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
     if teamlist is not None:
@@ -57,9 +57,8 @@ def postlobby(teamlist=None, lobbynum=1):
     return response_msg
 
 def cancellobby(teamcount=0):
-    response_msg = respmsg(f"Scrims cancelled | {dates_time.get_today()}")
-    response_msg = respmsg("Not enough teams - Scrims cancelled")
-    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
+    response_msg = respmsg(f"Scrims cancelled  |  {dates_time.get_today()}")
+    response_msg.add_field(name="Not enough teams", value=f"```{teamcount}```", inline=False)
     return response_msg
 
 def quote():

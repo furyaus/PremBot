@@ -126,8 +126,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
             await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Post lobbies in lobby channel")
         else:
-            await lobby1channel.send(embed=notification.cancellobby(self.teamcount))
-            await signupmsg.edit(embed=notification.cancellobby())
+            await signupmsg.edit(embed=notification.cancellobby(self.teamcount))
             notification.printcon(f"Scrims cancelled - {self.teamcount} teams")
 
         self.t1.clear()
