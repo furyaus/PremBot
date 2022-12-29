@@ -36,6 +36,9 @@ async def on_ready():
 # Catch unknown commands
 @bot.event
 async def on_command_error(ctx, error):
+    msg = ctx.message.content
+    await ctx.message.delete()
+    await notification.send_alert(ctx=ctx, header=f"Command {msg} not found",content="Try again or type !help")
     logchannel = bot.get_channel(bot_log_channel_id)
     response_msg = notification.respmsg()
     response_msg.description = "Command Error"

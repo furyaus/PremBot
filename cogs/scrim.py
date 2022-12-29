@@ -10,16 +10,34 @@ signup_message_id = int(os.environ['signup_message_id'])
 lobby1_message_id = int(os.environ['lobby1_message_id'])
 tier1_role_id  = int(os.environ['tier1_role_id'])
 tier2_role_id = int(os.environ['tier2_role_id'])
-fill_role_id = int(os.environ['fill_role_id'])
+tier3_role_id = int(os.environ['tier3_role_id'])
 
 class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
     def __init__(self, bot):
         self.bot = bot
         self.checkinopen = False
         self.checkoutclosed = False
-        self.teams = []
-        self.fillteams = []
-      
+        self.teamcount = 0
+        self.t1 = []
+        self.t2 = []
+        self.t3 = []
+        self.fill = []
+
+    def teamlist(self):
+        teamstr = ""
+        if self.t1 or self.t2 or self.t3 or self.fill:
+              for slot, team in enumerate(self.t1):
+                  teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
+              for slot, team in enumerate(self.t2):
+                  teamstr += "Slot {}: {}\n".format(len(self.t1)+slot+3, team.mention)
+              for slot, team in enumerate(self.t3):
+                  teamstr += "Slot {}: {}\n".format(len(self.t1)+len(self.t2)+slot+3, team.mention)
+              for slot, user in enumerate(self.fill):
+                  teamstr += "Slot {}: {} fill team\n".format(len(self.t1)+len(self.t2)+len(self.t3)+slot+3, user.mention)
+        else:
+            teamstr = ""
+        return teamstr
+  
     @commands.Cog.listener()
     async def on_ready(self):
         self.scrim_signup.start()
@@ -50,58 +68,59 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         #first time, comment out fetch, uncomment send, and set secert msg id after post
         #lobby1msg = await lobby1channel.send(embed=notification.postlobby(teamstr))
         lobby1msg = await lobby1channel.fetch_message(lobby1_message_id)
-        teamstr = ""
-        if self.teams or self.fillteams:
-            for slot, team in enumerate(self.teams):
-                teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-            for slot, user in enumerate(self.fillteams):
-                teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
 
-        if len(self.teams)+len(self.fillteams) > 13:
-            await lobby1msg.edit(embed=notification.postlobby(teamstr))
+        if self.teamcount > 13:
+            await lobby1msg.edit(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Post lobbies in lobby channel")
         else:
-            if self.teams or self.fillteams: 
-                await lobby1msg.edit(embed=notification.cancellobby(teamstr))
-            else:
-                await lobby1msg.edit(embed=notification.cancellobby())
-            notification.printcon(f"Scrims cancelled - {len(self.teams)+len(self.fillteams)} teams")
+            await lobby1msg.edit(embed=notification.cancellobby(self.teamlist()))
+            notification.printcon(f"Scrims cancelled - {self.teamcount} teams")
 
-        self.teams.clear()
-        self.fillteams.clear()
+        self.t1.clear()
+        self.t2.clear()
+        self.t3.clear()
+        self.fill.clear()
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):
         signupmsg = await ctx.fetch_message(signup_message_id)
         user = ctx.message.author
+        t1role = ctx.guild.get_role(tier1_role_id)
+        t2role = ctx.guild.get_role(tier2_role_id)
+        t3role = ctx.guild.get_role(tier3_role_id)
         await ctx.message.delete()
-        teamstr = ""
+        self.teamcount += 1
       
         if not self.checkinopen:
             await notification.send_alert(ctx=ctx, header="Scrims are not open",content="You can not check in right now")
             return
                   
         if len(ctx.message.role_mentions) != 0:
-            team_tag = ctx.message.role_mentions[0] 
-            self.teams.append(team_tag)
-            notification.printcon(f"{team_tag} team has checked in")
+            team_tag = ctx.message.role_mentions[0]
+            if t1role in ctx.author.roles:
+                self.t1.append(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T1")
+            if t2role in ctx.author.roles:
+                self.t2.append(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T2")
+            if t3role in ctx.author.roles:
+                self.t3.append(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T3")
         else: 
-            self.fillteams.append(user)
+            self.fill.append(user)
             notification.printcon(f"{user} fill team has checked in")
           
-        for slot, team in enumerate(self.teams):
-            teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-        for slot, user in enumerate(self.fillteams):
-            teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
-
-        await signupmsg.edit(embed=notification.openscrims(teamstr))
+        await signupmsg.edit(embed=notification.openscrims(self.teamlist()))
 
     @commands.command(name="checkout", brief="Check out a team")
     async def checkout(self, ctx):
         signupmsg = await ctx.fetch_message(signup_message_id)
         user = ctx.message.author
+        t1role = ctx.guild.get_role(tier1_role_id)
+        t2role = ctx.guild.get_role(tier2_role_id)
+        t3role = ctx.guild.get_role(tier3_role_id)
         await ctx.message.delete()
-        teamstr = ""
+        self.teamcount -= 1
       
         if not self.checkinopen:
             await notification.send_alert(ctx=ctx, header="Scrims are not open",content="You can not check in right now")
@@ -113,19 +132,21 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
       
         if len(ctx.message.role_mentions) != 0:
             team_tag = ctx.message.role_mentions[0] 
-            self.teams.remove(team_tag)
-            notification.printcon(f"{team_tag} team has checked out")
+            if t1role in ctx.author.roles:
+                self.t1.remove(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T1")
+            if t2role in ctx.author.roles:
+                self.t2.remove(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T2")
+            if t3role in ctx.author.roles:
+                self.t3.remove(team_tag)
+                notification.printcon(f"{team_tag} team has checked in for T3")
         else: 
-            self.fillteams.remove(user)
+            self.fill.remove(user)
             notification.printcon(f"{user} fill team has checked out")
 
-        if self.teams or self.fillteams:
-            for slot, team in enumerate(self.teams):
-                teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-            for slot, user in enumerate(self.fillteams):
-                teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
-              
-            await signupmsg.edit(embed=notification.openscrims(teamstr))
+        if self.t1 or self.fill:
+            await signupmsg.edit(embed=notification.openscrims(self.teamlist()))
         else:
             await signupmsg.edit(embed=notification.openscrims())
 
