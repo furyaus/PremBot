@@ -56,7 +56,7 @@ def postlobby(teamlist=None, lobbynum=1):
         response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     return response_msg
 
-def cancellobby(teamlist=None, teamcount=0):
+def cancellobby(teamcount=0):
     response_msg = respmsg(f"Scrims cancelled | {dates_time.get_today()}")
     response_msg = respmsg("Not enough teams - Scrims cancelled")
     response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)

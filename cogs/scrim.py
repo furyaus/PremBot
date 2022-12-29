@@ -113,25 +113,21 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         self.checkinopen = False
         await signupmsg.edit(embed=notification.closescrims())
 
-        #first time, comment out fetch, uncomment send, and set secert msg id after post
-        lobby1msg = await lobby1channel.send(embed=notification.postlobby())
-        lobby2msg = await lobby2channel.send(embed=notification.postlobby())
-        lobby3msg = await lobby3channel.send(embed=notification.postlobby())
-
         if self.teamcount >= 45:
-            await lobby1msg.edit(embed=notification.postlobby(self.teamlist()))
-            await lobby2msg.edit(embed=notification.postlobby(self.teamlist()))
-            await lobby3msg.edit(embed=notification.postlobby(self.teamlist()))
+            await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
+            await lobby2channel.send(embed=notification.postlobby(self.teamlist()))
+            await lobby3channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Posting lobby info for three lobbies")
         if 30 <= self.teamcount < 44:
-            await lobby1msg.edit(embed=notification.postlobby(self.teamlist()))
-            await lobby2msg.edit(embed=notification.postlobby(self.teamlist()))
+            await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
+            await lobby2channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Posting lobby info for two lobbies")
         if 14 < self.teamcount < 30:
-            await lobby1msg.edit(embed=notification.postlobby(self.teamlist()))
+            await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Post lobbies in lobby channel")
         else:
-            await lobby1msg.edit(embed=notification.cancellobby(self.teamlist()))
+            await lobby1channel.send(embed=notification.cancellobby(self.teamcount))
+            await signupmsg.edit(embed=notification.cancellobby())
             notification.printcon(f"Scrims cancelled - {self.teamcount} teams")
 
         self.t1.clear()
