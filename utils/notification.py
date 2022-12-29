@@ -33,9 +33,10 @@ def latecheckout(user, team=None):
         response_msg.add_field(name="Team", value=team, inline=False)
     return response_msg
 
-def openscrims(teamlist=None):
+def openscrims(teamlist=None, teamcount=0):
     response_msg = respmsg("Scrim signup is open")
     response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```**Or you'll be given a strike!**\n", inline=False)
+    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
     response_msg.add_field(name="Check In - team with discord role", value="```!checkin @team```", inline=False)
     response_msg.add_field(name="Check In - fill team", value="```!checkin```", inline=False)
     if teamlist is not None:
@@ -50,18 +51,15 @@ def closescrims():
 def postlobby(teamlist=None, lobbynum=1):
     response_msg = respmsg(f"Lobby {lobbynum} | {dates_time.get_today()}")
     response_msg.add_field(name="password", value="```yeet```", inline=False)
-    if dates_time.get_weekend():
-        response_msg.add_field(name="Weekend time", value="```6pm ADST```", inline=False)
-    else:
-        response_msg.add_field(name="Weekday time", value="```7pm ADST```", inline=False)
+    response_msg.add_field(name="Time", value="```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
     if teamlist is not None:
         response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     return response_msg
 
-def cancellobby(teamlist=None):
+def cancellobby(teamlist=None, teamcount=0):
+    response_msg = respmsg(f"Scrims cancelled | {dates_time.get_today()}")
     response_msg = respmsg("Not enough teams - Scrims cancelled")
-    if teamlist is not None:
-        response_msg.add_field(name="Teams:", value=teamlist, inline=False)
+    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
     return response_msg
 
 def quote():
