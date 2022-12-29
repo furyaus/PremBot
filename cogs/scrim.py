@@ -4,7 +4,9 @@ from utils import notification, dates_time
 
 discord_server_id = int(os.environ['discord_server_id'])
 signup_channel_id = int(os.environ['signup_channel_id'])
+lobby1_channel_id = int(os.environ['lobby1_channel_id'])
 signup_message_id = int(os.environ['signup_message_id'])
+lobby1_message_id = int(os.environ['lobby1_message_id'])
 tier1_role_id  = int(os.environ['tier1_role_id'])
 tier2_role_id = int(os.environ['tier2_role_id'])
 fill_role_id = int(os.environ['fill_role_id'])
@@ -27,22 +29,45 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         secondsleft = 5
         notification.printcon(f"{secondsleft}secs until scrim signup")
         await asyncio.sleep(secondsleft)
-        channel = self.bot.get_channel(signup_channel_id)
-        signupmsg = await channel.fetch_message(signup_message_id)
-        if signupmsg:
-            await signupmsg.edit(embed=notification.openscrims())
-        else:
-            signupmsg = await channel.send(embed=notification.openscrims())
+        signupchannel = self.bot.get_channel(signup_channel_id)
+        lobby1channel = self.bot.get_channel(lobby1_channel_id)
+        
+        #first time, comment out fetch, uncomment send, and set secert msg id after post
+        #signupmsg = await signupchannel.send(embed=notification.openscrims())
+        signupmsg = await signupchannel.fetch_message(signup_message_id)
+        await signupmsg.edit(embed=notification.openscrims())
+        
         self.checkinopen = True
         #await asyncio.sleep(dates_time.seconds_until(6, 00))
-        await asyncio.sleep(35)
+        await asyncio.sleep(20)
         self.checkoutclosed = True
         notification.printcon("Checkout closed")
-        await asyncio.sleep(45)
+        await asyncio.sleep(20)
         self.checkinopen = False
+        await signupmsg.edit(embed=notification.closescrims())
+
+        #first time, comment out fetch, uncomment send, and set secert msg id after post
+        #lobby1msg = await lobby1channel.send(embed=notification.postlobby(teamstr))
+        lobby1msg = await lobby1channel.fetch_message(lobby1_message_id)
+        teamstr = ""
+        if self.teams or self.fillteams:
+            for slot, team in enumerate(self.teams):
+                teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
+            for slot, user in enumerate(self.fillteams):
+                teamstr += "Slot {}: {} fill team\n".format(len(self.teams)+slot+3, user.mention)
+
+        if len(self.teams)+len(self.fillteams) > 13:
+            await lobby1msg.edit(embed=notification.postlobby(teamstr))
+            notification.printcon("Post lobbies in lobby channel")
+        else:
+            if self.teams or self.fillteams: 
+                await lobby1msg.edit(embed=notification.cancellobby(teamstr))
+            else:
+                await lobby1msg.edit(embed=notification.cancellobby())
+            notification.printcon(f"Scrims cancelled - {len(self.teams)+len(self.fillteams)} teams")
+
         self.teams.clear()
         self.fillteams.clear()
-        await signupmsg.edit(embed=notification.closescrims())
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):

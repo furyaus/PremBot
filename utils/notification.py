@@ -22,17 +22,34 @@ def respmsg(titleText=None, descText=None):
     return response_msg
 
 def openscrims(teamlist=None):
-    response_msg = respmsg("Open scrims signup")
+    response_msg = respmsg("Scrim signup is open")
     response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```**Or you'll be given a strike!**\n", inline=False)
-    response_msg.add_field(name="Check In - oceanic team:", value="```Example```", inline=False)
-    response_msg.add_field(name="Check In - fill team:", value="```Example```", inline=False)
+    response_msg.add_field(name="Check In - team with discord role", value="```!checkin @team```", inline=False)
+    response_msg.add_field(name="Check In - fill team", value="```!checkin```", inline=False)
     if teamlist is not None:
         response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     return response_msg
 
 def closescrims():
-    response_msg = respmsg("Close scrims signup")
-    response_msg.add_field(name="Sign ups are closed", value="```Example```", inline=False)
+    response_msg = respmsg("Scrim signup is closed")
+    response_msg.add_field(name="Sign ups are closed", value="```Please see the lobby channels for team lists```", inline=False)
+    return response_msg
+
+def postlobby(teamlist=None, lobbynum=1):
+    response_msg = respmsg(f"Lobby {lobbynum} | {dates_time.get_today()}")
+    response_msg.add_field(name="password", value="```yeet```", inline=False)
+    if dates_time.get_weekend():
+        response_msg.add_field(name="Weekend time", value="```6pm ADST```", inline=False)
+    else:
+        response_msg.add_field(name="Weekday time", value="```7pm ADST```", inline=False)
+    if teamlist is not None:
+        response_msg.add_field(name="Teams:", value=teamlist, inline=False)
+    return response_msg
+
+def cancellobby(teamlist=None):
+    response_msg = respmsg("Not enough teams - Scrims cancelled")
+    if teamlist is not None:
+        response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     return response_msg
 
 def quote():

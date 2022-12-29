@@ -13,8 +13,15 @@ def get_now():
     return now
   
 def get_today():
-    today = datetime.date.today(tz)
+    today = datetime.datetime.now(tz).strftime("%d/%m")
     return today
+
+def get_weekend():
+    today = datetime.date.now(tz).weekday()
+    if today == 5 or today == 6:
+        return True
+    else:
+        return False
 
 def get_tomorrow():
     today = datetime.date.today(tz)
