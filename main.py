@@ -17,6 +17,7 @@ bot_token = os.environ['bot_token']
 botintents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=botintents, help_command=PrettyHelp())
 bot_log_channel_id = int(os.environ['bot_log_channel_id'])
+bot.remove_command("help")
 
 # Load cogs
 async def load_extensions():
