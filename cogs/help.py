@@ -46,7 +46,7 @@ class Help(commands.Cog):
         response_msg = notification.respmsg("Scrim Help","How to check in or out for APAC Prem scrims")
         response_msg.add_field(name="Status",value="Sends a PM with current bot IP to confirm running```!status```",inline=False)
         response_msg.add_field(name="Inspiration",value="Sends a inspiring quote to current channel - good way to confirm bot has internet access ```!inspire```",inline=False)
-        response_msg.add_field(name="No DMs",value="Bot repsonds to DMs with ```No DMs```",inline=False)
+        response_msg.add_field(name="No DMs to or from bot",value="Bot repsonds to DMs with ```No DMs```",inline=False)
         response_msg.add_field(name="Report issues",value="Head to github and create a new issue or feature request [https://github.com/furyaus/PremBot/issues](https://github.com/furyaus/PremBot/issues)",inline=False)
         await ctx.message.channel.send(embed=response_msg)
     
