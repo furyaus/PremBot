@@ -1,6 +1,6 @@
 import os, asyncio
 from discord.ext import commands, tasks
-from utils import notification, dates_time
+from utils import notification
 
 discord_server_id = int(os.environ['discord_server_id'])
 bot_admin_channel_id = int(os.environ['bot_admin_channel_id'])
@@ -106,10 +106,11 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         
         self.checkinopen = True
         #await asyncio.sleep(dates_time.seconds_until(6, 00))
-        await asyncio.sleep(60)
+        await asyncio.sleep(120)
         self.checkoutclosed = True
         notification.printcon("Checkout closed")
-        await asyncio.sleep(20)
+        await signupmsg.edit(embed=notification.openscrims(self.teamlist(), self.teamcount, True))
+        await asyncio.sleep(40)
         self.checkinopen = False
         await signupmsg.edit(embed=notification.closescrims())
 
@@ -133,6 +134,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         self.t2.clear()
         self.t3.clear()
         self.fill.clear()
+        self.teamcount = 0
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):
