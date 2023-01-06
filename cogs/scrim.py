@@ -38,58 +38,21 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         else:
             teamstr = ""
         return teamstr
-
-    def lobby1list(self):
-        teamstr = ""
-        if self.t1 or self.t2 or self.t3 or self.fill:
-              for slot, team in enumerate(self.t1):
-                  teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-              for slot, team in enumerate(self.t2):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+slot+3, team.mention)
-              for slot, team in enumerate(self.t3):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+len(self.t2)+slot+3, team.mention)
-              for slot, user in enumerate(self.fill):
-                  teamstr += "Slot {}: {} fill team\n".format(len(self.t1)+len(self.t2)+len(self.t3)+slot+3, user.mention)
-        else:
-            teamstr = ""
-        return teamstr
-
-    def lobby2list(self):
-        teamstr = ""
-        if self.t1 or self.t2 or self.t3 or self.fill:
-              for slot, team in enumerate(self.t1):
-                  teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-              for slot, team in enumerate(self.t2):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+slot+3, team.mention)
-              for slot, team in enumerate(self.t3):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+len(self.t2)+slot+3, team.mention)
-              for slot, user in enumerate(self.fill):
-                  teamstr += "Slot {}: {} fill team\n".format(len(self.t1)+len(self.t2)+len(self.t3)+slot+3, user.mention)
-        else:
-            teamstr = ""
-        return teamstr
-
-    def lobby3list(self):
-        teamstr = ""
-        if self.t1 or self.t2 or self.t3 or self.fill:
-              for slot, team in enumerate(self.t1):
-                  teamstr += "Slot {}: {}\n".format(slot+3, team.mention)
-              for slot, team in enumerate(self.t2):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+slot+3, team.mention)
-              for slot, team in enumerate(self.t3):
-                  teamstr += "Slot {}: {}\n".format(len(self.t1)+len(self.t2)+slot+3, team.mention)
-              for slot, user in enumerate(self.fill):
-                  teamstr += "Slot {}: {} fill team\n".format(len(self.t1)+len(self.t2)+len(self.t3)+slot+3, user.mention)
-        else:
-            teamstr = ""
-        return teamstr
   
     @commands.Cog.listener()
     async def on_ready(self):
         self.scrim_signup.start()
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=3)
     async def scrim_signup(self):
+        self.t1.clear()
+        self.t2.clear()
+        self.t3.clear()
+        self.fill.clear()
+        self.teamcount = 0
+        self.checkinopen = False
+        self.checkoutclosed = False
+      
         #secondsleft = dates_time.seconds_until(23, 00)
         secondsleft = 5
         notification.printcon(f"{secondsleft}secs until scrim signup")
@@ -99,20 +62,22 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         lobby2channel = self.bot.get_channel(lobby2_channel_id)
         lobby3channel = self.bot.get_channel(lobby3_channel_id)
       
-        #first time, comment out fetch, uncomment send, and set secert msg id after post
-        #signupmsg = await signupchannel.send(embed=notification.openscrims())
-        signupmsg = await signupchannel.fetch_message(signup_message_id)
-        await signupmsg.edit(embed=notification.openscrims())
-        
         self.checkinopen = True
+        #first time, comment out fetch, uncomment send, and set secert msg id after post
+        #await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
+        signupmsg = await signupchannel.fetch_message(signup_message_id)
+        notification.printcon("signup post")
+        await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
         #await asyncio.sleep(dates_time.seconds_until(6, 00))
+      
         await asyncio.sleep(120)
         self.checkoutclosed = True
         notification.printcon("Checkout closed")
-        await signupmsg.edit(embed=notification.openscrims(self.teamlist(), self.teamcount, True))
+        await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
         await asyncio.sleep(40)
+      
         self.checkinopen = False
-        await signupmsg.edit(embed=notification.closescrims())
+        await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
 
         if self.teamcount >= 45:
             await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
@@ -127,14 +92,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
             await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Post lobbies in lobby channel")
         else:
-            await signupmsg.edit(embed=notification.cancellobby(self.teamcount))
-            notification.printcon(f"Scrims cancelled - {self.teamcount} teams")
-
-        self.t1.clear()
-        self.t2.clear()
-        self.t3.clear()
-        self.fill.clear()
-        self.teamcount = 0
+            await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):
@@ -164,8 +122,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         else: 
             self.fill.append(user)
             notification.printcon(f"{user} fill team has checked in")
-          
-        await signupmsg.edit(embed=notification.openscrims(self.teamlist(),self.teamcount))
+        await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
 
     @commands.command(name="checkout", brief="Check out a team")
     async def checkout(self, ctx):
@@ -201,9 +158,9 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
             notification.printcon(f"{user} fill team has checked out")
 
         if self.t1 or self.fill:
-            await signupmsg.edit(embed=notification.openscrims(self.teamlist(), self.teamcount))
+            await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
         else:
-            await signupmsg.edit(embed=notification.openscrims(None,self.teamcount))
+            await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
 
     @commands.command(name="latecheckout", brief="Late checkout of team")
     async def latecheckout(self, ctx):

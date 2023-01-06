@@ -33,21 +33,24 @@ def latecheckout(user, team=None):
         response_msg.add_field(name="Team", value=team, inline=False)
     return response_msg
 
-def openscrims(teamlist=None, teamcount=0, latecheckout=False):
-    response_msg = respmsg("Scrim signup is open")
-    response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
-    response_msg.add_field(name="Check In", value="```!checkin @team or !checkin```", inline=False)
-    response_msg.add_field(name="Check Out", value="```!checkout @team or !checkout```", inline=False)
-    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
-    if teamlist is not None:
-        response_msg.add_field(name="Teams:", value=teamlist, inline=False)
-    if latecheckout is True:
-        response_msg.add_field(name="Check out closed", value="Check outs now will incur a strike!", inline=False)
-    return response_msg
-
-def closescrims():
-    response_msg = respmsg("Scrim signup is closed")
-    response_msg.add_field(name="Sign ups are closed", value="```Please see the lobby channels for team lists```", inline=False)
+def postscrims(scrimsopen=False, teamlist="", teamcount=0, latecheckout=False):
+    if scrimsopen:
+        response_msg = respmsg("Scrim signup is open")
+        response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
+        response_msg.add_field(name="Check In", value="```!checkin @team or !checkin```", inline=False)
+        response_msg.add_field(name="Check Out", value="```!checkout @team or !checkout```", inline=False)
+        if teamcount != 0:
+            response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
+        if teamlist != "":
+            response_msg.add_field(name="Teams:", value=teamlist, inline=False)
+        if latecheckout is True:
+            response_msg.add_field(name="Check out closed", value="Check outs now will incur a strike!", inline=False)
+    elif not scrimsopen and teamcount == 0:
+        response_msg = respmsg(f"Scrims cancelled  |  {dates_time.get_today()}")
+        response_msg.add_field(name="Not enough teams", value=f"```{teamcount}```", inline=False)
+    else:
+        response_msg = respmsg("Scrim signup is closed")
+        response_msg.add_field(name="Sign ups are closed", value="```Please see the lobby channels for team lists```", inline=False)
     return response_msg
 
 def postlobby(teamlist=None, lobbynum=1):
@@ -56,11 +59,6 @@ def postlobby(teamlist=None, lobbynum=1):
     response_msg.add_field(name="Time", value="```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
     if teamlist is not None:
         response_msg.add_field(name="Teams:", value=teamlist, inline=False)
-    return response_msg
-
-def cancellobby(teamcount=0):
-    response_msg = respmsg(f"Scrims cancelled  |  {dates_time.get_today()}")
-    response_msg.add_field(name="Not enough teams", value=f"```{teamcount}```", inline=False)
     return response_msg
 
 def quote():
