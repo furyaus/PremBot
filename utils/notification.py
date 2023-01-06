@@ -35,10 +35,10 @@ def latecheckout(user, team=None):
 
 def openscrims(teamlist=None, teamcount=0, latecheckout=False):
     response_msg = respmsg("Scrim signup is open")
-    response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```**Or you'll be given a strike!**\n", inline=False)
-    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
+    response_msg.add_field(name="Scrim Signup", value="Please remember the latest you can check out is: ```Weekday: 5:30pm AEST\nWeekend: 5:00pm AEST```", inline=False)
     response_msg.add_field(name="Check In", value="```!checkin @team or !checkin```", inline=False)
     response_msg.add_field(name="Check Out", value="```!checkout @team or !checkout```", inline=False)
+    response_msg.add_field(name="Team count", value=f"```{teamcount}```", inline=False)
     if teamlist is not None:
         response_msg.add_field(name="Teams:", value=teamlist, inline=False)
     if latecheckout is True:
