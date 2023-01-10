@@ -45,7 +45,7 @@ def postscrims(scrimsopen=False, teamlist="", teamcount=0, latecheckout=False):
             response_msg.add_field(name="Teams:", value=teamlist, inline=False)
         if latecheckout is True:
             response_msg.add_field(name="Check out closed", value="Check outs now will incur a strike!", inline=False)
-    elif not scrimsopen and teamcount == 0:
+    elif not scrimsopen and teamcount < 14:
         response_msg = respmsg(f"Scrims cancelled  |  {dates_time.get_today()}")
         response_msg.add_field(name="Not enough teams", value=f"```{teamcount}```", inline=False)
     else:

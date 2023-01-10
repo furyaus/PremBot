@@ -43,7 +43,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
     async def on_ready(self):
         self.scrim_signup.start()
 
-    @tasks.loop(minutes=3)
+    @tasks.loop(minutes=4)
     async def scrim_signup(self):
         self.t1.clear()
         self.t2.clear()
@@ -64,7 +64,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
       
         self.checkinopen = True
         #first time, comment out fetch, uncomment send, and set secert msg id after post
-        #await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
+        #signupmsg = await signupchannel.send(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
         signupmsg = await signupchannel.fetch_message(signup_message_id)
         notification.printcon("signup post")
         await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
@@ -74,7 +74,7 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         self.checkoutclosed = True
         notification.printcon("Checkout closed")
         await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
-        await asyncio.sleep(40)
+        await asyncio.sleep(60)
       
         self.checkinopen = False
         await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
@@ -91,8 +91,6 @@ class Scrim(commands.Cog, description="Commands to organise scrim sign up"):
         if 14 < self.teamcount < 30:
             await lobby1channel.send(embed=notification.postlobby(self.teamlist()))
             notification.printcon("Post lobbies in lobby channel")
-        else:
-            await signupmsg.edit(embed=notification.postscrims(self.checkinopen, self.teamlist(), self.teamcount, self.checkoutclosed))
 
     @commands.command(name="checkin", brief="Check in a team or Mix")
     async def checkin(self, ctx):
